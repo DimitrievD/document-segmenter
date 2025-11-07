@@ -1,0 +1,25 @@
+# Core ML and Vision Libraries
+ultralytics
+opencv-python
+numpy
+
+# API Server Library
+Flask
+Flask-Cors
+
+# Library for the Client Script (to test the API)
+requests
+
+# Torch and Torchvision are core dependencies for Ultralytics/YOLO.
+# While ultralytics often installs them automatically, specifying them
+# can prevent version conflicts, especially on systems with/without GPUs.
+# Choose one of the following torch installations based on your hardware.
+
+# For systems WITH an NVIDIA GPU (recommended for performance)
+# --extra-index-url https://download.pytorch.org/whl/cu118
+# torch==2.1.0
+# torchvision==0.16.0
+
+# For systems WITHOUT a dedicated NVIDIA GPU (CPU only)
+torch
+torchvision
