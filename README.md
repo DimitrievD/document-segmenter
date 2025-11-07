@@ -33,7 +33,7 @@ This is the fastest way to get the entire application running.
 
 1.  **Clone the Repository**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/DimitrievD/document-segmenter.git
     cd document_detector
     ```
 
