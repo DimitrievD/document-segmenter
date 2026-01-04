@@ -1,162 +1,105 @@
+# Document Segmenter & Receipt Processor
 
-
-This project uses a YOLOv8 segmentation model served by a Python Flask API to automatically detect and extract individual documents from a single image. A modern React front-end provides a user-friendly interface for uploading images and viewing the results.
+This project uses a YOLOv11/v8 segmentation model to automatically detect and extract individual documents from a single image. After segmentation, documents (specifically receipts) are processed through an OCR pipeline for text extraction and verification.
 
 ## 🚀 Key Features
 
--   **AI-Powered Backend**: Utilizes a powerful YOLO model for accurate document segmentation.
--   **RESTful API**: Python/Flask backend serves the model and processes images.
--   **Interactive Frontend**: React app with drag-and-drop and file browser for image uploads.
--   **Cross-Platform**: Includes setup and run scripts for both Windows and Linux/macOS.
--   **Easy Setup**: One-command installation for all dependencies (Python & Node.js).
--   **Simple Launch**: One command to start both the backend API and the frontend server concurrently.
+-   **AI-Powered Document Segmentation**: Utilizes YOLO for accurate document detection and cropping.
+-   **Receipt Processing Pipeline**:
+    -   **PaddleOCR**: Extracts raw text from document segments.
+    -   **Text Cleaning**: Refines OCR output using regex and heuristics.
+    -   **Fuzzy Matcher**: Matches extracted text against a database of known vendors and items.
+    -   **Database Check**: Verifies findings against a mock database (`mock_db.json`).
+-   **Modern Web UI**: React-based frontend for easy upload and visualization.
+-   **Separate Environments**: Discrete environments for inference (`app/`) and training (`training/`).
 
-## 🏛️ Project Architecture
+## 🏛️ Pipeline Flow
 
-```[User] <--> [Browser: React Frontend] <--> [API: Python/Flask Backend] <--> [YOLOv8 Model]
+```mermaid
+graph TD
+    A[Image Upload] --> B[YOLO Segmentation]
+    B --> C[Document Cropping]
+    C --> D[PaddleOCR - Raw Text]
+    D --> E[Text Cleaning]
+    E --> F[Fuzzy Matcher]
+    F --> G[Database Check]
+    G --> H[JSON Response]
 ```
 
 ## ✅ Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
-
--   **Python 3.9+** (ensure it's added to your system's PATH).
--   **Node.js v16+** and **npm** (Node Package Manager).
--   **Git** (for cloning the repository).
--   **(Optional)** An NVIDIA GPU with CUDA drivers for GPU acceleration with PyTorch.
+-   **Python 3.12.3** (recommended for the `app` environment).
+-   **Node.js v16+** and **npm**.
+-   **Git**.
 
 ---
 
 ## ⚡ Quick Start
 
-This is the fastest way to get the entire application running.
-
 1.  **Clone the Repository**
     ```bash
     git clone https://github.com/DimitrievD/document-segmenter.git
-    cd document_detector
+    cd document-segmenter
     ```
 
-2.  **Run the Installation Script**
-    This will create a Python virtual environment, install all backend and frontend dependencies automatically.
+2.  **Installation**
+    Automatic setup of virtual environments (`venv_app`, `venv_training`) and dependencies.
+    -   **Full App Setup (Windows):** `.\app\install_app.bat`
+    -   **Full App Setup (Linux/macOS):** `cd app && chmod +x *.sh && ./install_app.sh`
+    -   **Training Setup (Windows):** `.\training\install_training.bat`
+    -   **Training Setup (Linux/macOS):** `cd training && chmod +x *.sh && ./install_training.sh`
 
-    -   **On Windows (PowerShell or CMD):**
-        ```powershell
-        .\install.bat
-        ```
-    -   **On Linux or macOS:**
-        ```bash
-        # First, make the script executable
-        chmod +x install.sh
-        
-        # Then, run it
-        ./install.sh
-        ```
+3.  **Run the Application**
+    Starts the Flask API and React frontend concurrently.
+    -   **Windows:** `.\app\start_app.bat`
+    -   **Linux/macOS:** `cd app && ./start_app.sh`
 
-3.  **Run the Application Start Script**
-    This will launch both the Flask API and the React development server in separate terminal windows.
-
-    -   **On Windows:**
-        ```powershell
-        .\start.bat
-        ```
-    -   **On Linux or macOS:**
-        ```bash
-        ./start.sh
-        ```
-
-4.  **Access the Application**
-    -   Open your web browser and navigate to the frontend: **`http://localhost:3000`**
-    -   The backend API will be running at: `http://localhost:5000`
-
-    To stop the servers on Linux/macOS, press `Ctrl + C` in the terminal where you ran `start.sh`. On Windows, close the two new terminal windows that opened.
-
----
-
-## 🛠️ Manual Setup & Execution
-
-If you prefer to set up and run the services manually, follow these steps.
-
-### Backend Setup (Flask API)
-
-1.  **Create and Activate Virtual Environment:**
-    ```powershell
-    # Create the virtual environment
-    python -m venv venv
-
-    # Activate it (Windows PowerShell)
-    .\venv\Scripts\Activate.ps1
-    
-    # Or (Linux/macOS)
-    source venv/bin/activate
-    ```
-
-2.  **Install Python Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-### Frontend Setup (React App)
-
-1.  **Navigate to the Frontend Directory:**
-    ```bash
-    cd document-processor-frontend
-    ```
-
-2.  **Install Node.js Dependencies:**
-    ```bash
-    npm install
-    ```
-
-### Running Manually
-
-You will need **two separate terminals**.
-
--   **In Terminal 1 (Project Root), run the Backend:**
-    ```bash
-    # Make sure your venv is active
-    python app.py
-    ```
-
--   **In Terminal 2, run the Frontend:**
-    ```bash
-    # Navigate to the frontend directory
-    cd document-processor-frontend
-
-    # Start the React app
-    npm start
-    ```
+4.  **Access**
+    -   **Frontend**: `http://localhost:3000`
+    -   **Backend**: `http://localhost:5000`
 
 ---
 
 ## 📁 Project Structure
 
 ```
-/document_detector
+/document-segmenter
 │
-├── 📜 app.py                      # Main Flask API file
-├── 📜 requirements.txt             # Python dependencies
+├── 📂 app/                        # Inference & API Logic
+│   ├── 📜 app.py                  # Flask API Entry Point
+│   ├── 📜 receipt_processor.py    # OCR & Processing Logic
+│   ├── 📜 test_receipt.py        # Pipeline testing script
+│   ├── 📜 install_app.bat / .sh   # App installation scripts
+│   ├── 📜 start_app.bat / .sh     # App launch scripts
+│   ├── 📂 database/               # Mock DB (json)
+│   ├── 📂 models/                 # Inference weights
+│   └── 📜 requirements.txt        # App-specific dependencies
 │
-├── 📂 document-processor-frontend/ # React frontend application
-│   ├── public/
-│   ├── src/
-│   ├── package.json
-│   └── ...
+├── 📂 training/                   # Training Environment
+│   ├── 📜 train_segmentation.py   # Training script
+│   ├── 📂 dataset/                # Training data
+│   ├── 📜 install_training.bat/.sh # Training install scripts
+│   ├── 📜 start_training.bat / .sh # Training launch scripts
+│   └── 📜 requirements.txt        # Training-specific dependencies
 │
-├── 📂 venv/                         # Python virtual environment (created by script)
+├── 📂 document-processor-frontend/ # React Application
 │
-├── 📜 install.bat                  # Windows installation script
-├── 📜 install.sh                   # Linux/macOS installation script
-├── 📜 start.bat                    # Windows start script
-└── 📜 start.sh                     # Linux/macOS start script
+├── 📜 install.bat / .sh           # Installation scripts
+└── 📜 start.bat / .sh             # Launch scripts
+```
+
+## 🛠️ Receipt Processing Verification
+You can test the OCR pipeline standalone:
+```bash
+# Activate app environment
+.\venv_app\Scripts\activate
+# Run test script
+python app/test_receipt.py test_images/1.jpg
 ```
 
 ---
 
-##  Troubleshooting
-
--   **CORS Error in Browser Console**: This means the frontend cannot communicate with the backend. Ensure you have installed and configured `flask-cors` in your `app.py`.
--   **PowerShell Script Execution Blocked**: If `.\venv\Scripts\Activate.ps1` is blocked, run PowerShell as an Administrator and execute: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`.
--   **`pip install` Fails**: Some packages may require C++ build tools. On Windows, you might need to install "Microsoft C++ Build Tools" from the Visual Studio Installer.
--   **Port Conflict**: If port 5000 or 3000 is in use, the application may fail to start. You can configure the port in the `app.py` script (for Flask) or by modifying the `npm start` script (for React).
-```
+## Troubleshooting
+-   **Python Versions**: The `app` environment is optimized for Python 3.12. Ensure your global `python` command points to a compatible version during installation.
+-   **PaddleOCR Dependencies**: PaddleOCR may require specific libraries depending on your OS (e.g., `libssl` on Linux).
+-   **Web UI Connection**: If the UI shows errors, ensure the backend started on port 5000 and check for CORS issues in the console.

@@ -108,6 +108,27 @@ h1 {
     transform: scale(1.02);
 }
 
+.mode-selector {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #f1f3f5;
+    border-radius: 8px;
+}
+
+.mode-dropdown {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: white;
+}
+
 /* --- Results --- */
 .results-section {
     margin-top: 3rem;
@@ -147,17 +168,177 @@ h1 {
 }
 
 .results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
 .result-item {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    animation: popIn 0.3s ease-out;
+}
+
+@media (max-width: 600px) {
+    .result-item {
+        grid-template-columns: 1fr;
+    }
+}
+
+.result-image-container {
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filename-tag {
+    font-size: 0.85rem;
+    color: var(--subtle-text-color);
+    font-weight: 600;
+    text-align: center;
+}
+
+.result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.vendor-info {
+    padding: 0.75rem 1rem;
+    background-color: #e9f3ff;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.confidence {
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    margin-left: 0.5rem;
+    font-weight: 600;
+}
+
+.text-content h4,
+.items-info h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--subtle-text-color);
+}
+
+.raw-text {
+    background-color: #f1f3f5;
+    padding: 1rem;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+}
+
+.items-info ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.items-info li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+}
+
+.item-name {
+    font-weight: 500;
+}
+
+.item-score {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    background-color: #e9f3ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* --- Debug / Steps Section --- */
+.debug-section {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
     gap: 0.75rem;
-    animation: popIn 0.3s ease-out;
+}
+
+.toggle-debug-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--secondary-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: fit-content;
+}
+
+.toggle-debug-btn:hover {
+    background-color: #f1f3f5;
+    color: var(--text-color);
+}
+
+.steps-carousel {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    scrollbar-width: thin;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 120px;
+}
+
+.step-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--subtle-text-color);
+    text-transform: uppercase;
+}
+
+.step-item img {
+    width: 120px;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* --- Highlighting --- */
+.highlight {
+    background-color: #fff176;
+    color: #000;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+.result-column {
+    display: flex;
+    flex-direction: column;
 }
 
 .result-item img {
@@ -188,7 +369,8 @@ h1 {
     border: 1px solid var(--error-color);
     padding: 1rem;
     border-radius: 8px;
-    grid-column: 1 / -1; /* Span all columns */
+    grid-column: 1 / -1;
+    /* Span all columns */
 }
 
 /* --- Loader Spinner --- */
@@ -203,16 +385,35 @@ h1 {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes popIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }

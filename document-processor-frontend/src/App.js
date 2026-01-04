@@ -7,6 +7,7 @@ function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [isDragActive, setIsDragActive] = useState(false);
+    const [processMode, setProcessMode] = useState('segment'); // 'segment' or 'ocr'
     const fileInputRef = useRef(null); // Create a ref for the file input
 
     // This function handles the API call
@@ -22,6 +23,7 @@ function App() {
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('mode', processMode);
 
         try {
             const response = await fetch('http://127.0.0.1:5000/segment', {
@@ -82,14 +84,14 @@ function App() {
             processImage(e.dataTransfer.files[0]);
         }
     }, []);
-    
+
     // --- Event Handler for File Browser ---
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             processImage(e.target.files[0]);
         }
     };
-    
+
     const triggerFileSelect = () => {
         fileInputRef.current.click();
     };
@@ -127,6 +129,19 @@ function App() {
                     </p>
                 </div>
 
+                <div className="mode-selector">
+                    <label htmlFor="mode">Processing Mode: </label>
+                    <select
+                        id="mode"
+                        value={processMode}
+                        onChange={(e) => setProcessMode(e.target.value)}
+                        className="mode-dropdown"
+                    >
+                        <option value="segment">Only Segment (Fast)</option>
+                        <option value="ocr">Segment + OCR (PaddleOCR)</option>
+                    </select>
+                </div>
+
                 {showResultsArea && (
                     <div className="results-section">
                         <div className="results-header">
@@ -137,24 +152,103 @@ function App() {
                                 </button>
                             )}
                         </div>
-                        
+
                         {isLoading && <div className="loader"></div>}
                         {error && !isLoading && <p className="error-message">{error}</p>}
-                        
+
                         <div className="results-grid">
                             {documents.map((doc, index) => (
-                                <div key={index} className="result-item">
-                                    <img
-                                        src={`data:image/jpeg;base64,${doc.data}`}
-                                        alt={doc.filename}
-                                    />
-                                    <span>{doc.filename}</span>
-                                </div>
+                                <ResultItem key={index} doc={doc} />
                             ))}
                         </div>
                     </div>
                 )}
             </main>
+        </div>
+    );
+}
+
+function ResultItem({ doc }) {
+    const [showSteps, setShowSteps] = useState(false);
+
+    return (
+        <div className="result-item">
+            <div className="result-column">
+                <div className="result-image-container">
+                    <img
+                        src={`data:image/jpeg;base64,${doc.data}`}
+                        alt={doc.filename}
+                    />
+                    <span className="filename-tag">{doc.filename}</span>
+                </div>
+
+                {doc.receipt_data && doc.receipt_data.processing_steps && (
+                    <div className="debug-section">
+                        <button
+                            className="toggle-debug-btn"
+                            onClick={() => setShowSteps(!showSteps)}
+                        >
+                            {showSteps ? "Hide" : "Show"} Processing Steps
+                        </button>
+
+                        {showSteps && (
+                            <div className="steps-carousel">
+                                {doc.receipt_data.processing_steps.map((step, sIdx) => (
+                                    <div key={sIdx} className="step-item">
+                                        <span className="step-name">{step.name}</span>
+                                        <img
+                                            src={`data:image/jpeg;base64,${step.image}`}
+                                            alt={step.name}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <div className="result-info">
+                {doc.matches && doc.matches.vendor && (
+                    <div className="vendor-info">
+                        <strong>Vendor:</strong> {doc.matches.vendor.name}
+                        <span className="confidence">({Math.round(doc.matches.vendor.confidence)}%)</span>
+                    </div>
+                )}
+
+                <div className="text-content">
+                    <h4>Extracted Text</h4>
+                    <div className="raw-text">
+                        {doc.receipt_data && doc.receipt_data.text_segments ? (
+                            doc.receipt_data.text_segments.map((seg, sIdx) => (
+                                <span
+                                    key={sIdx}
+                                    className={seg.matched ? "highlight" : ""}
+                                >
+                                    {seg.text}
+                                </span>
+                            ))
+                        ) : (
+                            doc.extracted_text || "No text extracted."
+                        )}
+                    </div>
+                </div>
+
+                {doc.matches && doc.matches.items_found && doc.matches.items_found.length > 0 && (
+                    <div className="items-info">
+                        <h4>Matched Items</h4>
+                        <ul>
+                            {doc.matches.items_found.slice(0, 10).map((item, i) => (
+                                <li key={i}>
+                                    <span className="item-name">{item.name}</span>
+                                    <span className="item-score">{Math.round(item.confidence)}%</span>
+                                </li>
+                            ))}
+                            {doc.matches.items_found.length > 10 && <li>... and {doc.matches.items_found.length - 10} more</li>}
+                        </ul>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
